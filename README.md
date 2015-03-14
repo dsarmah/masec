@@ -29,7 +29,7 @@ You can embed this code in your Java applications to manage users, authenticate 
 
 		Map <String, Object> ret = service.addUser(user);
 		
-Check ServiceSecurity.java for all the available APIs.
+Check ServiceSecurity.java for all the available APIs. All available field for User object are described in Constants.java file.
 
 # Data Persistence	
 By default, embedded in memory HSQLDB database is used to store data. So by default it will run as it is without needing to change anything. For production you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and Postgre are provided. 
