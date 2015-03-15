@@ -57,18 +57,7 @@ public class AppTest extends TestCase
     	
     }
     
-    public void testBasic()
-    {
-        SecurityService service = SecurityServiceFactory.getSecurityService();                
-        assertTrue( addUsers(service) );
-        assertTrue(login(service, "u9", "jkjkk"));
-        assertFalse(login(service, "u22", "jkjkk"));
-        assertFalse(login(service, "u9", "0jkjkk"));
-        assertTrue( deleteUsers(service) );
-        assertFalse(login(service, "u9", "jkjkk"));
-    }
-    
-    public void testAdvance()
+    public void testUnit()
     {
         SecurityService service1 = SecurityServiceFactory.getSecurityService();
         SecurityService service2 = SecurityServiceFactory.getSecurityService("myapp");
@@ -80,10 +69,7 @@ public class AppTest extends TestCase
         assertTrue( deleteUsers(service2) );
         assertFalse(login(service2, "u9", "jkjkk"));
         assertTrue( deleteUsers(service1) );
-    }
-    
-    public void testMedium()
-    {
+        
         SecurityService service = SecurityServiceFactory.getSecurityService();
     	Map <String, Object> user = new HashMap <String, Object> ();
         user.put(Constants.USERNAME, "test1");
@@ -118,5 +104,9 @@ public class AppTest extends TestCase
         List <Map <String, Object>> rows = service.listUser(0, 10);
         assertTrue(rows.size() > 0);
         service.deleteUser(user);
-    }
+        service.shutdown();
+        service1.shutdown();
+        service2.shutdown();
+        
+    }    
 }
