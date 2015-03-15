@@ -10,7 +10,7 @@ You can embed this code in your Java applications to manage users, authenticate 
 
 # How to use it?
 
-1. Firs you need to acquire a security service:
+1. First you need to acquire a security service:
 
 		// Default security service
 		SecurityService service = SecurityServiceFactory.getSecurityService();
@@ -36,7 +36,7 @@ You can embed this code in your Java applications to manage users, authenticate 
 Check ServiceSecurity.java for all the available APIs. All available field for User object are described in Constants.java file.
 
 # Data Persistence	
-By default, embedded in memory HSQLDB database is used to store data. So by default it will run as it is without needing to change anything. For production you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and Postgre are provided. 
+By default, data are stored in an embedded in memory HSQLDB database. So it runs as it is without needing to change anything. For production deployment, you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and PostgreSql are provided. 
 
 # Future
 1. Add REST API
