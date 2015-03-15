@@ -1,5 +1,9 @@
-# masec
+# masec - Identity Management
 App centric Java component to manage users and authentications in the cloud. 
+
+# Technology used
+- Java JAAS
+- Spring ORM
 
 # What you can do?
 You can embed this code in your Java applications to manage users, authenticate and update password. You can share users for all your applications or separate them as per application. You can also run this as separate component in a web container and make it a central user management and authentication service. Users data including hashed password are stored in the database.
