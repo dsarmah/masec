@@ -6,7 +6,12 @@ App centric Java component to manage users and authentications in the cloud.
 - Spring ORM
 
 # What you can do?
-You can embed this code in your Java applications to manage and authenticate users, and update password. You can also run this as separate component in a web container and make it a central user management and authentication service - this is desirable if you plan to it to manage identity for multiple applications. You can share users for all your applications or separate them as per application. Users data including hashed password and salts are stored in the database.
+You can embed this code in your Java applications to manage and authenticate users, and update password. You can also run this as separate component in a web container and make it a central user management and authentication service - this is desirable if you plan to manage identity for multiple applications. You can share users for all your applications or separate them as per application. Users data including hashed password and salts are stored in the database.
+
+- It has in-built user directory service
+- It provides Java APIs to manage users
+- It provides authentication API using JaaS
+- LDAP/active directory service can also be configured
 
 # How to use it?
 
@@ -44,6 +49,6 @@ By default, data are stored in an embedded in-memory HSQLDB database. So it runs
 
 # Future
 1. Add REST API
-2. Add LDAP configurations - i.e., application can use native login module or configured one.
+2. Add LDAP server configurations in the database.
 3. Add policy engine
 4. Create cloud connector to connect on-premise active directory server.
