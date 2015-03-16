@@ -37,7 +37,7 @@ You can embed this code in your Java applications to manage and authenticate use
 Check ServiceSecurity.java for all the available APIs. All available fields for User object are described in Constants.java file.
 
 # Example
-Check AppTest.java
+Check the unit test: AppTest.java
 
 # Data Persistence	
 By default, data are stored in an embedded in-memory HSQLDB database. So it runs as it is without needing to change anything. For production deployment, you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and PostgreSql are provided. 
