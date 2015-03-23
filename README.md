@@ -39,7 +39,7 @@ You can embed this code in your Java applications to manage and authenticate use
 
 4. To add LDAP configuration and refresh the configuration at run time:
 	
-		// LDAP configurations for serviceLd2
+		// LDAP configurations
     	Map <String, String> lC2 = new HashMap <String, String> ();
         lC2.put("debug", "false");
         lC2.put("useSSL", "false");
@@ -47,11 +47,11 @@ You can embed this code in your Java applications to manage and authenticate use
         lC2.put("userFilter", "(&(uid={USERNAME})(objectClass=inetOrgPerson))");
         lC2.put("authzIdentity", "{USERNAME}");
          
-        // LDAP map for serviceLd2 
+        // LDAP map
         Map <String, Object> ldapConfig = new HashMap <String, Object> ();
-        ld2.put(Constants.PROVIDERNAME, "nico-provider");
-        ld2.put(Constants.PROVIDERTYPE, "ldap");
-        ld2.put(Constants.PROVIDERCONF, lC2);
+        ldapConfig.put(Constants.PROVIDERNAME, "nico-provider");
+        ldapConfig.put(Constants.PROVIDERTYPE, "ldap");
+        ldapConfig.put(Constants.PROVIDERCONF, lC2);
 		
 		SecurityService serviceLd = SecurityServiceFactory.getSecurityService("nicodime"); 
 		Map <String, Object> ret = serviceLd.addAuthProvider(ldapConfig);
