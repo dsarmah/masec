@@ -26,5 +26,17 @@ public class Constants
 	public final static String EXTENDEDPROFILE = "extendProfile";
 	
 	//****** END OF USER OBJECT *******//
+	
+	// AuthProvider configuration OBJECT - all fields are String	
+	public final static String PROVIDERTYPE = "providerType";
+	public final static String PROVIDERNAME = "providerName";
+	public final static String PROVIDERCONF = "configuration";
+	public final static String PROVIDERAPP = "apllication";
 		
+	// LDAP Configurations...
+	public final static String LDAP_LOGINMODULE = "loginmodule";
+	public final static String LDAP_USERPROVIDER = "userProvider";
+	public final static String LDAP_USERFILTER = "userFilter";
+	public final static String LDAP_USERIDENTITY = "authzIdentity";
+	
 }

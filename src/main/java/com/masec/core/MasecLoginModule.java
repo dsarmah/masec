@@ -12,13 +12,16 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
+import org.apache.log4j.Logger;
+
 import com.masec.Constants;
 import com.masec.core.model.UserId;
 import com.masec.core.model.User;
 
 public class MasecLoginModule implements LoginModule
 {
-
+	private Logger log = Logger.getLogger(this.getClass());
+	
 	@SuppressWarnings("unused")
 	private Subject subject;
 	private CallbackHandler callbackHandler;
@@ -64,19 +67,19 @@ public class MasecLoginModule implements LoginModule
 			String userName = ((NameCallback)callbacks[0]).getName();
 			char [] passwordCharArray = ((PasswordCallback)callbacks[1]).getPassword();
 			String password = new String(passwordCharArray);
-			//System.out.println(userName);
-			//System.out.println(password);			
-	    
+			log.debug("username: " + userName);					
+			
 			//==> Authentication.
 			
 			SecurityContext ctx = (SecurityContext) options.get(Constants.SECCTX);
-			//System.out.println(ctx.application);
+			log.debug("application: " + ctx.application);
 			UserId id = new UserId();
 			id.setUserName(userName);
 			id.setApplicationCtx(ctx.application);
 			User u = ctx.userService.authenticate(id, password);
 			if (null == u)
 			{
+				log.debug("login FAILED for username: " + userName);
 				returnValue = false;
 			}
 			else

@@ -8,18 +8,25 @@ import java.util.Map;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.masec.Constants;
 import com.masec.SecurityService;
+import com.masec.core.LoginContextConfig;
 import com.masec.core.LoginServiceImpl;
 import com.masec.core.SecurityContext;
 import com.masec.core.SecurityFactory;
+import com.masec.core.dao.AuthProviderDao;
+import com.masec.core.model.AuthProvider;
+import com.masec.core.model.AuthProviderId;
 import com.masec.core.model.User;
 import com.masec.core.model.UserId;
 
 public class SecurityServiceImpl implements SecurityService
 {
-	LoginServiceImpl lSrvc;
+	private LoginServiceImpl lSrvc;
 	private static UserService userService;
+	private static AuthProviderDao authProvider;
 	
 	public SecurityServiceImpl()
 	{
@@ -38,6 +45,7 @@ public class SecurityServiceImpl implements SecurityService
 		lSrvc = new LoginServiceImpl(ctx);
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext( "classpath:masecDbContext.xml" );
 		userService = ( UserService)applicationContext.getBean( "userService" );
+		authProvider = ( AuthProviderDao)applicationContext.getBean( "authProviderDao" );
 	}
 	
 	@Override
@@ -69,8 +77,9 @@ public class SecurityServiceImpl implements SecurityService
 		}
 		catch (Exception x)
 		{
-			x.printStackTrace();
+			//x.printStackTrace();
 			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
 		}
 		return ret;
 	}
@@ -112,8 +121,9 @@ public class SecurityServiceImpl implements SecurityService
 		}
 		catch (Exception x)
 		{
-			x.printStackTrace();
+			//x.printStackTrace();
 			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
 		}
 		return ret;
 	}
@@ -137,8 +147,9 @@ public class SecurityServiceImpl implements SecurityService
 		}
 		catch (Exception x)
 		{
-			x.printStackTrace();
+			//x.printStackTrace();
 			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
 		}
 		return ret;
 	}
@@ -155,8 +166,9 @@ public class SecurityServiceImpl implements SecurityService
 		}
 		catch (Exception x)
 		{
-			x.printStackTrace();
+			//x.printStackTrace();
 			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
 		}
 		return ret;
 	}
@@ -208,6 +220,133 @@ public class SecurityServiceImpl implements SecurityService
     	u.setId(id);
     	
     	return u;
+	}
+
+	@Override
+	public List<Map<String, Object>> listAuthProviderByTypeAndApplication(String type, String application) 
+	{
+		List<Map<String, Object>> ret = new ArrayList<Map<String, Object>> ();
+		
+		List<AuthProvider> authP = authProvider.findByTypeAndApplication(type, application);
+        
+        for( AuthProvider p : authP )
+        {
+        	Map<String, Object> row = convertApToMap(p);
+        	ret.add(row);        	
+        }
+		return ret;	
+	}
+
+
+	@Override
+	public List<Map<String, Object>> listAuthProviders(int offset, int limit) 
+	{
+		List<Map<String, Object>> ret = new ArrayList<Map<String, Object>> ();
+		
+		List<AuthProvider> authP = authProvider.findAll(offset, limit);
+        
+        for( AuthProvider p : authP )
+        {
+        	Map<String, Object> row = convertApToMap(p);
+        	ret.add(row);        	
+        }
+		return ret;	
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Map<String, Object> addAuthProvider(Map<String, Object> provider) 
+	{
+		Map <String, Object> ret = new HashMap <String, Object>();
+		try
+		{
+	    	AuthProvider p = new AuthProvider();
+	    	
+	    	AuthProviderId id = new AuthProviderId();
+	    	
+	    	//id.setApplication((String)provider.get(Constants.PROVIDERAPP));
+	    	id.setApplication((lSrvc.getSecContext().application));
+	    	id.setProviderName((String)provider.get(Constants.PROVIDERNAME));
+	    	
+	    	p.setId(id);
+	    	
+	    	Object conf = provider.get(Constants.PROVIDERCONF);
+	    	if (conf instanceof String)
+	    	{
+	    		p.setConfiguration((String)conf);
+	    	}
+	    	else if (conf instanceof Map)
+	    	{
+	    		Gson gson = new Gson();
+	    		String json = gson.toJson((Map <String, String>)conf);
+	    		//System.out.println("JSON=" + json);
+	    		p.setConfiguration(json);
+	    	}
+	    	else
+	    	{
+	    		//System.out.println(conf);
+	    		ret.put(Constants.STATUS, new Boolean(false));
+	    		ret.put(Constants.ERRORMSG, "LDAP JAAS configuration information is not correct.");
+	    		return ret;
+	    	}
+	    		
+	    	p.setProviderType((String)provider.get(Constants.PROVIDERTYPE));
+	    	
+	        authProvider.save(p );
+	        
+			ret.put(Constants.STATUS, new Boolean(true));
+		}
+		catch (org.springframework.dao.DataIntegrityViolationException v)
+		{			
+			ret.put(Constants.STATUS, new Boolean(false));
+		}
+		catch (Exception x)
+		{
+			//x.printStackTrace();
+			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
+		}
+		return ret;
+
+	}
+
+	@Override
+	public Map<String, Object> deleteAuthProvider(Map<String, Object> provider) 
+	{
+		Map <String, Object> ret = new HashMap <String, Object>();
+		try
+		{
+			AuthProvider p = convertToProvider(provider, lSrvc.getSecContext().application);
+			authProvider.delete(p);
+			ret.put(Constants.STATUS, new Boolean(true));
+		}
+		catch (Exception x)
+		{
+			//x.printStackTrace();
+			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
+		}
+		return ret;
+	}
+
+	@Override
+	public Map<String, Object> updateAuthProvider(Map<String, Object> provider) 
+	{
+		Map <String, Object> ret = new HashMap <String, Object>();
+		try
+		{
+			AuthProvider p = convertToProvider(provider, lSrvc.getSecContext().application);
+			authProvider.update(p);
+			ret.put(Constants.STATUS, new Boolean(true));
+		}
+		catch (Exception x)
+		{
+			//x.printStackTrace();
+			ret.put(Constants.STATUS, new Boolean(false));
+			ret.put(Constants.ERRORMSG, "FAILED: database operations: " + x.getMessage());
+		}
+		return ret;
 	}
 	
 	/*
@@ -283,4 +422,151 @@ public class SecurityServiceImpl implements SecurityService
     	return u;
 	}
 	*/
+
+	private Map<String, Object> convertApToMap(AuthProvider p) 
+	{
+
+		Map <String, Object> ret = new HashMap <String, Object> ();
+		
+		if (null != p)
+		{
+			AuthProviderId id = p.getId();
+			
+			if (null != id)
+			{
+				if (null != id.getApplication())
+				{
+					ret.put(Constants.PROVIDERAPP, id.getApplication());
+				}
+				if (null != id.getProviderName())
+				{
+					ret.put(Constants.PROVIDERNAME, id.getProviderName());
+				}
+			}
+			
+			if (null != p.getConfiguration())
+			{
+				ret.put(Constants.PROVIDERCONF, p.getConfiguration());
+			}						
+			
+			if (null != p.getProviderType())
+			{
+				ret.put(Constants.PROVIDERTYPE, p.getProviderType());
+			}
+		}
+		
+		return ret;
+	}
+
+	private AuthProvider convertToProvider(Map<String, Object> provider, String application) 
+	{
+		AuthProvider p = new AuthProvider();
+		AuthProviderId id = new AuthProviderId();
+		
+		id.setApplication(application);
+
+		if (null != provider.get(Constants.PROVIDERNAME))
+		{
+			id.setProviderName(((String) provider.get(Constants.PROVIDERNAME)));
+			p.setId(id);
+		}
+		
+		if (null != provider.get(Constants.PROVIDERTYPE))
+		{
+			p.setProviderType(((String) provider.get(Constants.PROVIDERTYPE)));
+		}
+		
+		if (null != provider.get(Constants.PROVIDERCONF))
+		{
+			if (provider.get(Constants.PROVIDERCONF) instanceof String)
+			{
+				p.setConfiguration(((String) provider.get(Constants.PROVIDERCONF)));
+			}
+			else if (provider.get(Constants.PROVIDERCONF) instanceof Map)
+			{
+				Gson gson = new Gson();
+	    		String json = gson.toJson((Map <String, String>)provider.get(Constants.PROVIDERCONF));
+	    		//System.out.println("JSON=" + json);
+	    		p.setConfiguration(json);
+			}
+		}
+					
+		return p;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void refreshLdapConfigurations() 
+	{
+		List<AuthProvider> authP = authProvider.findAllByTypeOrderByApplication("ldap");
+		//System.out.println(authP.size());
+		LoginContextConfig lCfg = LoginContextConfig.getLoginCtxCfg(lSrvc.getSecContext());
+		
+		Map <String, Object> newCfg = new HashMap <String, Object> ();
+		
+		List <Map <String, String>> lm = new ArrayList <Map <String, String>> ();
+		for( AuthProvider p : authP )
+        {
+			//System.out.println(p);
+			
+        	if (null != p.getConfiguration())
+        	{        		
+        	    try 
+        	    {        	    	
+        	    	HashMap<String, String> conf = new Gson().fromJson(p.getConfiguration(), new TypeToken<HashMap<String, String>>(){}.getType());
+        	    	conf.put(Constants.PROVIDERAPP, p.getId().getApplication());
+        	    	conf.put(Constants.PROVIDERNAME, p.getId().getProviderName());
+        	    	conf.put(Constants.PROVIDERTYPE, p.getProviderType());
+        	    	
+        	    	List <Map <String, String>> list;
+        	    	if (null == newCfg.get(p.getId().getApplication()))
+        	    	{
+        	    		list = new ArrayList <Map <String, String>> ();
+        	    		newCfg.put(p.getId().getApplication(), list);
+        	    	}
+        	    	else
+        	    	{
+        	    		list = (List <Map <String, String>>) newCfg.get(p.getId().getApplication());        	    		
+        	    	}
+        	    	
+        	    	list.add(conf);
+        	    	
+        	    	
+        	    	//conf.put("type", "ldap");
+        	    	//System.out.println(map);
+        	    	
+					//prop.load(new StringReader(p.getConfiguration()));
+					//Map <String, Object> conf = new HashMap <String, Object> ();
+					
+					/*
+					conf.put("loginmodule", prop.getProperty("com.sun.security.auth.module.LdapLoginModule"));
+					conf.put("userProvider", prop.getProperty("ldap://ldap-svr/ou=people,dc=example,dc=com"));
+					conf.put("userFilter", prop.getProperty("(&(uid={USERNAME})(objectClass=inetOrgPerson))"));
+					conf.put("authzIdentity", prop.getProperty("{EMPLOYEENUMBER}"));		
+					conf.put("type", "ldap");
+					*/
+        	    	lm.add(conf);										
+				} 
+        	    catch (Exception e) 
+        	    {
+					e.printStackTrace();
+				}        	    
+        	}
+        	
+        }
+		if (lm.size() > 0)
+		{
+			//System.out.println("MAP:" + lm);
+			Map <String, Object> p = new HashMap <String, Object> ();
+			p.put("LDAP-List", lm);
+			//lCfg.loadLdapConfig(lSrvc.getSecContext(), lm);
+			lCfg.loadLdapConfig(lSrvc.getSecContext(), newCfg);
+		}
+	}
+	
+	@Override
+	public Map <String, Object> getCurrentLognConfig()
+	{
+		return LoginContextConfig.getLoginCtxCfg(lSrvc.getSecContext()).getLoginCfg();
+	}
 }
