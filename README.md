@@ -1,12 +1,12 @@
 # masec - Identity Management
-App centric Java component to manage users and authentications in the cloud. Suitable for SaaS applications.
+A simple App centric Java component to manage users and authentications in the cloud. Suitable for SaaS applications.
 
 # Technology used
 - Java JAAS
 - Spring ORM
 
 # What you can do?
-You can embed this code in your Java applications to manage and authenticate users, and update password. You can also run this as separate component in a web container and make it a central user management and authentication service - this is desirable if you plan to manage identity for multiple applications. You can share users for all your applications or separate them as per application. Users data including hashed password and salts are stored in the database.
+You can manage and authenticate users for an application (or tenant) or group of applications (tenants). Applications can share users. You can partition users by application. You can embed this code in your Java applications easily. You can also run this as a separate component in a web container and make it a central user management and authentication service - this is desirable if you plan to manage identity for multiple applications. Users data including hashed passwords, salts and configurations are stored in the database.
 
 - SaaS support: can configure login by tenant
 - It has built-in user directory service
@@ -64,10 +64,11 @@ Check SecurityService.java for all the available APIs. All available fields for 
 Check in the test folder: SimpleLogin.java and SaaSLogin.java
 
 # Data Persistence	
-By default, data are stored in an embedded in-memory HSQLDB database. So it runs as it is without needing to change anything. For production deployment, you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and PostgreSql are provided. 
+By default, data are stored in an embedded HSQLDB database. So it runs without needing to change anything. For production deployment, you should update the spring orm configuration file to connect to a standalone database of your choice. Schema for HSQL and PostgreSql are provided. 
 
 # Future
-1. Add REST API
-2. SSO support
-3. Add policy engine
-4. Create cloud connector to connect on-premise active directory server.
+1. Add users group support in native directory service
+2. Add REST API
+3. SSO support
+4. Add policy engine
+5. Create cloud connector to connect on-premise active directory server.
