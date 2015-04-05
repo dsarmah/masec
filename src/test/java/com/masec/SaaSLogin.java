@@ -14,54 +14,89 @@ import com.masec.core.service.SecurityServiceFactory;
 
 public class SaaSLogin 
 {
-    private boolean addUser(SecurityService service, Map <String, Object> user)
-    {
-        Map <String, Object> ret = service.addUser(user);
-        return (Boolean) ret.get(Constants.STATUS);    	
-    }
-    
-    private boolean deleteUser(SecurityService service, Map <String, Object> user)
-    {
-        Map <String, Object> ret = service.deleteUser(user);
-        return (Boolean) ret.get(Constants.STATUS);    	
-    }
-    
-    private boolean login(SecurityService service, String userName, String pw)
-    {
-    	Map <String, Object> user = new HashMap <String, Object> ();
-        user.put(Constants.USERNAME, userName);
-        user.put(Constants.PASSWORD, pw);
         
-        Map <String, Object> ret = service.login(user);
-        return (Boolean) ret.get(Constants.STATUS);    	
-    }
-    
     public static void main(String[] a)
     {
     	// For simplicity, lets define tenant names here (in practice you may have these defined in some table...
-    	// Tenant names must be unique
+    	// Tenant names must be unique. In this example dt1 and ld1 are two tenants who are using same SaaS application.
     	
-    	String defaultTenant1 = "dt1";
-    	String defaultTenant2 = "dt2";
-    	
-    	String ldapTenant1 = "ld1";
-    	String ldapTenant2 = "ld2";
-    	
-    	
-    	SaaSLogin sec = new SaaSLogin();
+    	String defaultTenant1 = "dt1";	//for example this tenant uses Masec's database based security provider    	
+    	String ldapTenant1 = "ld1";		//for example this tenant uses its own corporate LDAP server
 
     	/*** When you create named SecurityService, users are automatically partitioned *****/
-    	/*** creating named security service means passing unique name (tenant name) while creating security service. If you pass duplicate name, then it will return the same objects ***/
+    	/*** creating named security service means passing unique name (tenant name) when creating security service. If you pass duplicate name, then it will return the same objects ***/
     	
-    	SecurityService serviceDt1 = SecurityServiceFactory.getSecurityService(defaultTenant1);
-    	SecurityService serviceDt2 = SecurityServiceFactory.getSecurityService(defaultTenant2);
-    	SecurityService serviceLd1 = SecurityServiceFactory.getSecurityService(ldapTenant1);
-    	SecurityService serviceLd2 = SecurityServiceFactory.getSecurityService(ldapTenant2);
+    	SecurityService defaultSecSrv = SecurityFactory.getSecCtx(defaultTenant1); 
     	
+    	// you must be able to login to the security to use it. At this point you do not have any user. So, setup a technical user for your SaaS application so it can call security APIs.
+    	// A technical user necessary otherwise you wouldn't be able to add any user in to this system. This means, user technical user to add an user to the application. After that 
+    	// added user can add other users. When you setup technical user, you don't have to be already logged in. So be careful to use this API.
+    	//
+    	// It first tries to login if successful then return session id - otherwise it creates the new technical user.  
+    	
+    	
+    	// before you can use, you need to create/re-use a technical user which you can use to create new user (register new user)
+    	String sessDt1 = IdentityManagement.setApplicationTechnicalUser(defaultSecSrv, "admin101", "admin101Pw");
+    	
+    	if (null != sessDt1)
+    	{
+    		System.out.println("SUCCESS: technical user session: " + sessDt1);
+    	}
+    	else
+    	{
+    		System.out.println("FAILED: technical user session is NULL");
+    		return;
+    	}
+    	
+    	// lets create a new user for "dt1"
+    	Map <String, Object> user1 = new HashMap <String, Object> ();
+    	user1.put(Constants.USERNAME, "u9");
+        user1.put(Constants.PASSWORD, "jkjkk");
+        user1.put(Constants.FIRSTNAME, "tom");
+        user1.put(Constants.LASTNAME, "jerry");
+        
+        
+        if (!IdentityManagement.addUser(defaultSecSrv, sessDt1, user1))
+        {
+        	System.out.println("FAILED to add new user");
+        }
+        else
+        {
+	        System.out.println("SUCCESS: added new user: u9");
+	        
+	        String sessionId = IdentityManagement.login(defaultSecSrv, "u9", "jkjkk");
+	        
+	        if (null != sessionId)
+	        {
+	        	System.out.println("SUCCESS: user: u9 is logged in and sessionId is: " + sessionId);
+	        	if (!IdentityManagement.deleteUser(defaultSecSrv, sessDt1, user1))
+	            {
+	            	System.out.println("FAILED to delete user u9");
+	            }	
+	        	else
+	        	{
+	        		System.out.println("SUCCESS: user u9 is deleted");
+	        	}	        	
+	        }
+	        else
+	        {
+	        	System.out.println("FAILED: user u9 failed to logged in");
+	        }
+        }            	
+    	
+        /*
+         * This tenant has LDAP configure. We do not support user management for LDAP. If you use user management functions then they will manage user's in local database.
+         * So, we expect that you already have at least one user in LDAP wich you can use as technical user for your SaaS application to login.
+         * 
+         * But before even login against LDAP, you need to configure LDAP server in Masec. All configuration APIs are controlled by login. This means you must login to configure Masec for LDAP.
+         * So create a technical user for your SaaS application in the local database. 
+         */
 
-    	// As per this example's requirement, serviceDt1 and serviceDt2 will manage and authenticate users against default directory service.
-    	// So no need to add directory service provider for serviceDt1 and serviceDt2. But we need to add LDAP information for serviceLd1 and
-    	// serviceLd2. We will authenticate against LDAP directory service - we will not add/remove users in the LDAP.
+        SecurityService serviceLd1 = SecurityServiceFactory.getSecurityService(ldapTenant1);    	
+        String sessLd1 = IdentityManagement.setApplicationTechnicalUser(serviceLd1, "admin201", "admin201Pw");
+        
+        // You need to configure LDAP for serviceLd1 so that you can authenticate against LDAP.
+    	// We will authenticate against LDAP directory service - we will not add/remove users in the LDAP.
     	
     	//LDAP configuration for serviceLd1
     	Map <String, String> lC1 = new HashMap <String, String> ();
@@ -76,125 +111,49 @@ public class SaaSLogin
         ld1.put(Constants.PROVIDERNAME, "provider1");
         ld1.put(Constants.PROVIDERTYPE, "ldap");
         ld1.put(Constants.PROVIDERCONF, lC1);
-     	
-        // LDAP configurations for serviceLd2
-    	Map <String, String> lC2 = new HashMap <String, String> ();
-        lC2.put("debug", "false");
-        lC2.put("useSSL", "false");
-        lC2.put("userProvider", "ldap://localhost:389/ou=People,dc=maxcrc,dc=com");
-        lC2.put("userFilter", "(&(uid={USERNAME})(objectClass=inetOrgPerson))");
-        lC2.put("authzIdentity", "{USERNAME}");
-         
-        // LDAP map for serviceLd2 
-        Map <String, Object> ld2 = new HashMap <String, Object> ();
-        ld2.put(Constants.PROVIDERNAME, "provider2");
-        ld2.put(Constants.PROVIDERTYPE, "ldap");
-        ld2.put(Constants.PROVIDERCONF, lC2);
+        
+        // Add the sessionId of the technical user
+        ld1.put(Constants.LOGINSESSIONID, sessLd1);
         
      	//Add LDAP map for serviceLd1
+        
         Map <String, Object> ret = serviceLd1.addAuthProvider(ld1);
         if (!(Boolean) ret.get(Constants.STATUS))
         {
         	System.out.println("Failed: adding LDAP configurations to serviceLd1");
         	return;
         }
-        serviceLd1.refreshLdapConfigurations();
         
-        //Add LDAP map for serviceLd2
-        ret = serviceLd2.addAuthProvider(ld2);
-        if (!(Boolean) ret.get(Constants.STATUS))
-        {
-        	System.out.println("Failed: adding LDAP configurations to serviceLd2");
-        	return;
-        }
-        serviceLd2.refreshLdapConfigurations();    	
-    	 
+        // refresh the configurations        
+        IdentityManagement.refreshLdapConfigurations(serviceLd1, sessLd1);
+        
+            	 
         // Test login...
-        if (sec.login(serviceLd1, "dilip", "dilip123"))
+        if (null != IdentityManagement.login(serviceLd1, "dilip", "dilip123"))
     	{
-    		System.out.println("Successfully login...");
+    		System.out.println("SUCCESS: LDAP login");
     	}
     	else
     	{
-    		System.out.println("Login Failed...");
+    		System.out.println("FAILED: LDAP Login");
     	}
         
-        // Test login...
-        if (sec.login(serviceLd2, "dilip111", "dilip123"))
-    	{
-    		System.out.println("Successfully login...");
-    	}
-    	else
-    	{
-    		System.out.println("Login Failed...");
-    	}
         
-        /**** END: we have completed the adding LDAP configurations and login ****/
+        // delete the LDAP configurations...
+        Map <String, Object> p = new HashMap <String, Object> ();
+        p.put(Constants.PROVIDERNAME, "provider1");
+        p.put(Constants.PROVIDERTYPE, "ldap");
         
+        // Add the sessionId of the technical user
+        p.put(Constants.LOGINSESSIONID, sessLd1);
         
-        /*** Below is for users who are using default directory services but they are not sharing users ****/        
-        
-    	//Create a user object - check Constants.java for all supported members User
-    	Map <String, Object> user1 = new HashMap <String, Object> ();
-    	user1.put(Constants.USERNAME, "u9");
-        user1.put(Constants.PASSWORD, "jkjkk");
-        user1.put(Constants.FIRSTNAME, "tom");
-        user1.put(Constants.LASTNAME, "jerry");
-        
-        boolean addU = false;
-        if (addU = sec.addUser(serviceDt1, user1))
+        ret = serviceLd1.deleteAuthProvider(p);
+        if (!(Boolean)ret.get(Constants.STATUS))
         {
-        	//if add user is successful then you can start authenticating...
-        	if (sec.login(serviceDt1, "u9", "jkjkk"))
-        	{
-        		System.out.println("Successfully login...");
-        	}
-        	else
-        	{
-        		System.out.println("Login Failed...");
-        	}
-        }
-        else
-        {
-        	System.out.println("User could not be added...");
+        	System.out.println("FAILED: removing LDAP configurations failed.");
         }
         
-        if (addU)
-        {
-        	// User exists then delete the user... just to show how to delete
-        	sec.deleteUser(serviceDt1, user1);
-        }
-        
-        Map <String, Object> user2 = new HashMap <String, Object> ();
-    	user2.put(Constants.USERNAME, "ddu99");
-        user2.put(Constants.PASSWORD, "jkjkk");
-        user2.put(Constants.FIRSTNAME, "tom");
-        user2.put(Constants.LASTNAME, "jerry");
-        
-        boolean addU2 = false;
-        if (addU2 = sec.addUser(serviceDt2, user2))
-        {
-        	//if add user is successful then you can start authenticating...
-        	if (sec.login(serviceDt2, "ddu99", "jkjkk"))
-        	{
-        		System.out.println("Successfully login...");
-        	}
-        	else
-        	{
-        		System.out.println("Login Failed...");
-        	}
-        }
-        else
-        {
-        	System.out.println("User could not be added...");
-        }
-        
-        if (addU2)
-        {
-        	// User exists then delete the user... just to show how to delete
-        	sec.deleteUser(serviceDt2, user2);
-        }
-        
-        
+        // to shutdown embedded HSQLDB
+        IdentityManagement.shutdown(serviceLd1, null, null, sessLd1);
     }
 }

@@ -77,7 +77,8 @@ public class LoginServiceImpl implements LoginService
 	
 	 private class JaasConfig extends Configuration 
 	 {
-        private Configuration origConf;
+        @SuppressWarnings("unused")
+		private Configuration origConf;
         public JaasConfig() 
         { 
         	origConf = Configuration.getConfiguration(); 
@@ -99,7 +100,8 @@ public class LoginServiceImpl implements LoginService
             }
         	else if (null != lm)
         	{
-	    		List <Map <String, String>> ll = (List <Map <String, String>>) lm.get(secContext.application);
+	    		@SuppressWarnings("unchecked")
+				List <Map <String, String>> ll = (List <Map <String, String>>) lm.get(secContext.application);
 	    		if (null != ll && ll.size() > 0)
 	    		{
 	    			log.debug("logCfg Map: " + ll);

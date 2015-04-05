@@ -69,7 +69,7 @@ public class UserDaoImpl extends HibernateDaoSupport implements UserDao
     		if(null != user.getLastName())
     		{
     			u.setLastName(user.getLastName());
-    		}
+    		}    		
     		if(null != user.getPassword())
     		{
     			u.setPassword(user.getPassword());

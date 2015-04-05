@@ -6,6 +6,12 @@ public class Constants
 	public final static String STATUS = "status";
 	public final static String ERRORMSG = "errorMsg";
 	public final static String SECCTX = "securityContext";
+	public final static String APPLICATION = "apllication";
+	public final static String NEWPASSWORD = "newPasswd";
+	public final static String LOGINSESSIONID = "sessionId";
+	public final static String LIMIT = "limit";
+	public final static String OFFSET = "offset";
+	public final static String SECINFO = "loggedInUserInfo";
 	
 	// USER OBJECT - all are String except specified in the comment.
 	public final static String USERNAME = "userName";
@@ -39,4 +45,7 @@ public class Constants
 	public final static String LDAP_USERFILTER = "userFilter";
 	public final static String LDAP_USERIDENTITY = "authzIdentity";
 	
+	// GROUP OBJECT
+	public final static String G_NAME = "groupName";
+	public final static String G_DESCRIPTION = "gDesc";
 }

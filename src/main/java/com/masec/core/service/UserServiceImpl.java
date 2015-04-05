@@ -29,7 +29,12 @@ public class UserServiceImpl implements UserService
     @Override
     public List<User> findAll(int offset, int limit)
     {
-        return userDao.findAll(offset, limit);
+    	List<User> uList = userDao.findAll(offset, limit);
+    	for (User u: uList)
+    	{
+    		u.setPassword(null);
+    	}
+    	return uList;
     }
 
     @Override
@@ -92,6 +97,7 @@ public class UserServiceImpl implements UserService
 					
 	    			if (Arrays.equals(proposedDigest, bDigest))
 	    			{
+	    				u.setPassword(null);
 	    				return u;
 	    			}
     			} 
@@ -108,17 +114,19 @@ public class UserServiceImpl implements UserService
     	return null;
     }
 
+    // No specific check is perform here... all checks are already performed by the caller SecurityServiceImpl
 	@Override
-	public void updatePassword(User user) throws Exception 
+	public void updatePassword(User user, String newPasswd) throws Exception 
 	{
-		if (null != user.getId().getUserName() && null != user.getId().getApplicationCtx() && null != user.getPassword())
+		if (null != user.getId().getUserName() && null != user.getId().getApplicationCtx() && null != newPasswd)
     	{
+			
     		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
             // Salt generation 64 bits long
             byte[] bSalt = new byte[8];
             random.nextBytes(bSalt);
             // Digest computation
-            byte[] bDigest = Utility.getHash(user.getPassword(), bSalt);
+            byte[] bDigest = Utility.getHash(newPasswd, bSalt);
             String sDigest = Utility.byteToBase64(bDigest);
             String sSalt = Utility.byteToBase64(bSalt);
             
@@ -131,7 +139,6 @@ public class UserServiceImpl implements UserService
     	else
     	{
     		throw new Exception("username and password can not be null.");
-    	}
-		
+    	}		
 	}
 }

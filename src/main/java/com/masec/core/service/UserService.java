@@ -14,7 +14,7 @@ public interface UserService
     public List<User> findAll(int offset, int limit);
     public void save( User user) throws NoSuchAlgorithmException, UnsupportedEncodingException, IOException;
     public void update( User user);
-    public void updatePassword( User user) throws Exception;
+    public void updatePassword( User user, String newPasswd) throws Exception;
     public void delete( User user );
     public void shutdown();
     

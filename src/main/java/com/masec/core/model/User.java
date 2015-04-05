@@ -15,29 +15,9 @@ public class User implements Serializable
      * Serialization id
      */
     private static final long serialVersionUID = 1L;
-
-    /**
-     * The User's id attribute
-     */
-    /*
-    @Id
-    @GeneratedValue( strategy = GenerationType.AUTO )
-    @Column( name = "ID" )
-    private Long id;
-	*/
-    
+  
     @EmbeddedId
     private UserId id;
-    
-    /*
-    @Id
-    @Column( name = "UNAME" )
-    private String userName;
-    
-    @Id
-    @Column( name = "APPLICATION" )
-    private String applicationCtx;
-    */
     
     @Column( name = "FIRSTNAME" )
     private String firstName;
@@ -89,8 +69,7 @@ public class User implements Serializable
     }
 
     public User( 
-    				 //String userName,
-    				 //String applicationCtx,
+
     				 UserId id,
     				 String firstName,
                      String lastName,
@@ -108,14 +87,12 @@ public class User implements Serializable
                      String secQn3Ans,
                      String extendProfile)
     {
-    	//this.applicationCtx = applicationCtx;
     	this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
         this.picture = picture;
-        //this.userName = userName;
         this.password = password;
         this.salt = salt;        
         this.since = since;
@@ -183,15 +160,7 @@ public class User implements Serializable
 	public void setPicture(byte[] picture) {
 		this.picture = picture;
 	}
-/*
-	public String getUserName() {
-		return userName;
-	}
 
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
-*/
 	public String getSalt() {
 		return salt;
 	}
@@ -199,15 +168,7 @@ public class User implements Serializable
 	public void setSalt(String salt) {
 		this.salt = salt;
 	}
-/*
-	public String getApplicationCtx() {
-		return applicationCtx;
-	}
 
-	public void setApplicationCtx(String applicationCtx) {
-		this.applicationCtx = applicationCtx;
-	}
-*/
 	public Long getSince() {
 		return since;
 	}
